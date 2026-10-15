@@ -18,6 +18,7 @@ package org.assertj.core.condition;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
+import static org.assertj.core.condition.SatisfyingCondition.satisfyingCondition;
 import static org.assertj.core.util.AssertionsUtil.expectAssertionError;
 
 import java.util.List;
@@ -32,7 +33,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_match_when_all_assertions_pass() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> {
+    Condition<String> condition = satisfyingCondition(value -> {
       assertThat(value).startsWith("a");
       assertThat(value).hasSize(2);
     });
@@ -45,7 +46,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_not_match_when_an_assertion_fails() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> assertThat(value).hasSize(2));
+    Condition<String> condition = satisfyingCondition(value -> assertThat(value).hasSize(2));
     // WHEN
     boolean matches = condition.matches("a");
     // THEN
@@ -55,7 +56,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_not_match_when_a_later_assertion_fails() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> {
+    Condition<String> condition = satisfyingCondition(value -> {
       assertThat(value).startsWith("a");
       assertThat(value).hasSize(2);
     });
@@ -68,7 +69,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_not_match_custom_assertion_error_without_message() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> {
+    Condition<String> condition = satisfyingCondition(value -> {
       throw new AssertionError();
     });
     // WHEN
@@ -81,7 +82,7 @@ class SatisfyingCondition_matches_Test {
   void should_propagate_runtime_exception() {
     // GIVEN
     var failure = new IllegalStateException("Invalid test setup");
-    var condition = new SatisfyingCondition<String>(value -> {
+    Condition<String> condition = satisfyingCondition(value -> {
       throw failure;
     });
     // WHEN/THEN
@@ -92,7 +93,7 @@ class SatisfyingCondition_matches_Test {
   void should_propagate_other_errors() {
     // GIVEN
     var failure = new LinkageError("Unavailable class");
-    var condition = new SatisfyingCondition<String>(value -> {
+    Condition<String> condition = satisfyingCondition(value -> {
       throw failure;
     });
     // WHEN/THEN
@@ -102,7 +103,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_allow_consumer_to_match_null() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> assertThat(value).isNull());
+    Condition<String> condition = satisfyingCondition(value -> assertThat(value).isNull());
     // WHEN
     boolean matches = condition.matches(null);
     // THEN
@@ -112,7 +113,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_allow_consumer_to_reject_null() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> assertThat(value).isNotNull());
+    Condition<String> condition = satisfyingCondition(value -> assertThat(value).isNotNull());
     // WHEN
     boolean matches = condition.matches(null);
     // THEN
@@ -123,7 +124,7 @@ class SatisfyingCondition_matches_Test {
   void should_accept_consumer_of_supertype() {
     // GIVEN
     Consumer<CharSequence> assertions = value -> assertThat(value).hasSize(2);
-    SatisfyingCondition<String> condition = new SatisfyingCondition<>(assertions);
+    SatisfyingCondition<String> condition = satisfyingCondition(assertions);
     // WHEN
     boolean matches = condition.matches("bb");
     // THEN
@@ -133,7 +134,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_preserve_custom_description_across_evaluations() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> assertThat(value).hasSize(2));
+    Condition<String> condition = satisfyingCondition(value -> assertThat(value).hasSize(2));
     condition.as("has %s characters", 2);
     // WHEN
     boolean firstMatch = condition.matches("a");
@@ -150,7 +151,7 @@ class SatisfyingCondition_matches_Test {
   void should_invoke_consumer_once_per_match() {
     // GIVEN
     var calls = new AtomicInteger();
-    var condition = new SatisfyingCondition<String>(value -> calls.incrementAndGet());
+    Condition<String> condition = satisfyingCondition(value -> calls.incrementAndGet());
     // WHEN
     boolean matches = condition.matches("a");
     // THEN
@@ -162,7 +163,7 @@ class SatisfyingCondition_matches_Test {
   void should_reuse_assertion_helper_with_have_exactly() {
     // GIVEN
     Consumer<String> assertions = value -> assertThat(value).hasSize(2);
-    var condition = new SatisfyingCondition<>(assertions);
+    var condition = satisfyingCondition(assertions);
     // WHEN/THEN
     assertThat(List.of("a", "bb", "c")).haveExactly(1, condition);
   }
@@ -170,7 +171,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_report_wrong_match_count_with_custom_description() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> assertThat(value).hasSize(2));
+    Condition<String> condition = satisfyingCondition(value -> assertThat(value).hasSize(2));
     condition.as("has two characters");
     // WHEN
     var error = expectAssertionError(() -> assertThat(List.of("aa", "bb", "c")).haveExactly(1, condition));
@@ -181,7 +182,7 @@ class SatisfyingCondition_matches_Test {
   @Test
   void should_work_with_composed_conditions() {
     // GIVEN
-    var condition = new SatisfyingCondition<String>(value -> assertThat(value).hasSize(2));
+    Condition<String> condition = satisfyingCondition(value -> assertThat(value).hasSize(2));
     var combined = AllOf.allOf(condition, new Condition<String>(value -> value.startsWith("a"), "starts with a"));
     // WHEN
     boolean matches = combined.matches("ab");

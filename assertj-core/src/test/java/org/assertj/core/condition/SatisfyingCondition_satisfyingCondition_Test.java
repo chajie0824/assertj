@@ -17,19 +17,20 @@ package org.assertj.core.condition;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenNullPointerException;
+import static org.assertj.core.condition.SatisfyingCondition.satisfyingCondition;
 
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 
-class SatisfyingCondition_constructor_Test {
+class SatisfyingCondition_satisfyingCondition_Test {
 
   @Test
   void should_reject_null_consumer() {
     // GIVEN
     Consumer<String> assertions = null;
     // WHEN/THEN
-    thenNullPointerException().isThrownBy(() -> new SatisfyingCondition<>(assertions))
+    thenNullPointerException().isThrownBy(() -> satisfyingCondition(assertions))
                               .withMessage("The assertions consumer must not be null");
   }
 
@@ -38,7 +39,7 @@ class SatisfyingCondition_constructor_Test {
     // GIVEN
     Consumer<String> assertions = value -> {};
     // WHEN
-    var condition = new SatisfyingCondition<>(assertions);
+    var condition = satisfyingCondition(assertions);
     // THEN
     then(condition.description().value()).isEqualTo("satisfies the assertions");
   }

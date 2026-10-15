@@ -32,7 +32,7 @@ import org.assertj.core.api.Condition;
 /// Example:
 /// ```java
 /// Consumer<String> twoCharacters = value -> assertThat(value).hasSize(2);
-/// Condition<String> condition = new SatisfyingCondition<>(twoCharacters);
+/// Condition<String> condition = satisfyingCondition(twoCharacters);
 /// condition.as("has two characters");
 ///
 /// // succeeds: only "bb" satisfies the assertion
@@ -56,9 +56,15 @@ public final class SatisfyingCondition<T> extends Condition<T> {
 
   /// Creates a condition adapting the given assertion consumer.
   ///
+  /// @param <T> the type of value the condition accepts.
   /// @param assertions the consumer containing the assertions to evaluate.
+  /// @return the created condition.
   /// @throws NullPointerException if the consumer is null.
-  public SatisfyingCondition(Consumer<? super T> assertions) {
+  public static <T> SatisfyingCondition<T> satisfyingCondition(Consumer<? super T> assertions) {
+    return new SatisfyingCondition<>(assertions);
+  }
+
+  private SatisfyingCondition(Consumer<? super T> assertions) {
     super("satisfies the assertions");
     this.assertions = requireNonNull(assertions, "The assertions consumer must not be null");
   }
